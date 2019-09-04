@@ -11,11 +11,11 @@ import static org.lwjgl.glfw.GLFW.*;
 public class Main {
 
     public static Mesh quad;
-    public static int SIMW = 512;
-    public static int SIMH = 512;
+    public static int SIMW = 512/2;
+    public static int SIMH = 512/2;
     public static int WINW = 2048;
     public static int WINH = 2048;
-    public static float RHO = 1000F;
+    public static float RHO = 0.1F;
     public static float DT = 0.1F;
     public static float EPSILON = 1.0F / SIMW;
 
@@ -80,6 +80,7 @@ public class Main {
         Computation fixPressure = new Computation("fix_pressure");
         Computation velocityMouse = new Computation("velocity_mouse");
         Computation clampAboveZero = new Computation("clamp_above_zero");
+        Computation densityMouse=new Computation("density_mouse");
 
         glClearColor(1, 1, 1, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -87,6 +88,7 @@ public class Main {
         initDensity.run(new ShaderArguments(), density);
         initVelocity.run(new ShaderArguments(), velocity);
 
+        float lmx=0,lmy=0;
 
         while (!glfwWindowShouldClose(window)) {
             glClearColor(1, 1, 1, 1);
@@ -105,13 +107,19 @@ public class Main {
             mouseY*=2;
             mouseY=SIMH-mouseY;
 //            System.out.println(mouseX+" "+mouseY);
-            if(glfwGetMouseButton(window,GLFW_MOUSE_BUTTON_LEFT)==GLFW_PRESS) {
-                velocityMouse.run(new ShaderArguments().put("velocity", velocity).put("mousePos", mouseX, mouseY).put("mouseDir", 10, 0), temp);
+            if(glfwGetKey(window,GLFW_KEY_1)==GLFW_PRESS){
+                velocityMouse.run(new ShaderArguments().put("velocity", velocity).put("mousePos", mouseX, mouseY).put("mouseDir", mouseX-lmx,mouseY-lmy), temp);
                 copy.run(new ShaderArguments().put("source", temp), velocity);
             }
+            if(glfwGetKey(window,GLFW_KEY_2)==GLFW_PRESS){
+                densityMouse.run(new ShaderArguments().put("density",density).put("mousePos",mouseX,mouseY).put("change",
+                        glfwGetKey(window,GLFW_KEY_3)==GLFW_PRESS?1.0F:-1.0F
+                        ),temp);
+                copy.run(new ShaderArguments().put("source",temp),density);
+            }
 
-            clampAboveZero.run(new ShaderArguments().put("source", density), temp);
-            copy.run(new ShaderArguments().put("source", temp), density);
+//            clampAboveZero.run(new ShaderArguments().put("source", density), temp);
+//            copy.run(new ShaderArguments().put("source", temp), density);
 
             display.run(new ShaderArguments().put("density", density));
 
@@ -125,7 +133,7 @@ public class Main {
             calcDivergence.run(new ShaderArguments().put("velocity", velocity), divergence);
 
             allZero.run(new ShaderArguments(), pressure);
-            for (int i = 0; i < 30; i++) {
+            for (int i = 0; i < 200; i++) {
                 pressureIteration.run(new ShaderArguments().put("divergence", divergence).put("last_pressure", pressure), temp);
                 copy.run(new ShaderArguments().put("source", temp), pressure);
             }
@@ -136,6 +144,8 @@ public class Main {
 
             glfwSwapBuffers(window);
             glfwPollEvents();
+            lmx=mouseX;
+            lmy=mouseY;
         }
 
         glfwTerminate();
