@@ -23,7 +23,7 @@ public class GridData {
         Arrays.fill(ba,(byte)0);
         ByteBuffer bb=ByteBuffer.allocateDirect(ba.length).order(ByteOrder.nativeOrder());
         bb.put(ba).flip();
-        glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,Main.SIMW,Main.SIMH,0,GL_RGBA,GL_UNSIGNED_BYTE,bb);
+        glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA32F,Main.SIMW,Main.SIMH,0,GL_RGBA,GL_UNSIGNED_BYTE,bb);
 
         id=glGenFramebuffers();
         glBindFramebuffer(GL_FRAMEBUFFER,id);

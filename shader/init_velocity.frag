@@ -2,13 +2,12 @@
 
 in vec2 uv;
 
-uniform vec2 texSize;
-
 out vec4 fc;
 
+uniform vec2 texSize;
+
 void main(){
-    float f=4.0;
-    fc=vec4(sin(uv.y/texSize.x*6.2831853072*f),sin(uv.x/texSize.x*6.2831853072*f),0.0,1.0);
-//    fc=vec4( -normalize(uv-texSize/2.0),0.0,1.0  );
-    fc.w=1.0;
+    vec2 u=uv/texSize.x*5.0*6.2831853072;
+    fc=vec4(sin(u.y),sin(u.x),0,1);
+//    fc=vec4(1,sin(u.y),0,1);
 }

@@ -63,6 +63,11 @@ public class Computation {
         glViewport(0,0,Main.SIMW,Main.SIMH);
         if(target!=null){
             glBindFramebuffer(GL_FRAMEBUFFER,target.id);
+            for(String s:args.texs.keySet()){
+                if(args.texs.get(s).id == target.id){
+                    throw new RuntimeException("Can't render with target == data[\""+s+"\"]");
+                }
+            }
         }
         glUseProgram(id);
         glUniform2f(glGetUniformLocation(id,"texSize"),Main.SIMW,Main.SIMH);

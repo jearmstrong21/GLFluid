@@ -21,24 +21,29 @@ public class ShaderArguments {
         texs=new HashMap<>();
     }
 
-    public void put(String s,int i){
+    public ShaderArguments put(String s,int i){
         ints.put(s,i);
+        return this;
     }
 
-    public void put(String s,float f){
+    public ShaderArguments put(String s,float f){
         floats.put(s,f);
+        return this;
     }
 
-    public void put(String s,Vector2f f2){
+    public ShaderArguments put(String s,Vector2f f2){
         float2s.put(s,f2);
+        return this;
     }
 
-    public void put(String s,float f21,float f22){
+    public ShaderArguments put(String s,float f21,float f22){
         float2s.put(s,new Vector2f(f21,f22));
+        return this;
     }
 
-    public void put(String s,GridData gdd){
+    public ShaderArguments put(String s,GridData gdd){
         texs.put(s,gdd);
+        return this;
     }
 
 }

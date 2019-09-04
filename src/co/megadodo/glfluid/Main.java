@@ -57,50 +57,41 @@ public class Main {
                 0,2,3
         });
 
-        GridData[] density =new GridData[]{new GridData(),new GridData()};
+        GridData density=new GridData();
         GridData velocity=new GridData();
-        Computation display=new Computation("display");
-        Computation initDensity=new Computation("init_uv");
-        Computation initVelocity=new Computation("init_velocity");
 
-        Computation advection=new Computation("advect");
+        GridData temp=new GridData();
+        GridData divergence=new GridData();
+
+        Computation display=new Computation("display");
+        Computation initDensity=new Computation("init_density");
+        Computation initVelocity=new Computation("init_velocity");
+        Computation advect=new Computation("advect");
+        Computation copy=new Computation("copy");
+        Computation calcDivergence=new Computation("divergence");
 
         glClearColor(1,1,1,1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        initDensity.run(new ShaderArguments(),density[0]);
+
+        initDensity.run(new ShaderArguments(),density);
         initVelocity.run(new ShaderArguments(),velocity);
 
-
-
-        /*
-        init.run(args=none,target=gridData)
-
-        LOOP:
-        display.run(args=(tex=gridData),
-         */
 
         while(!glfwWindowShouldClose(window)){
             glClearColor(1,1,1,1);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//            glViewport(0,0,SIMW/2,SIMH/2);
 
-            {
-                ShaderArguments args=new ShaderArguments();
-                args.put("density",density[0]);
-                args.put("velocity",velocity);
-                advection.run(args,density[1]);
-            }
-            {
-                ShaderArguments args=new ShaderArguments();
-                args.put("density",density[1]);
-                args.put("velocity",velocity);
-                advection.run(args,density[0]);
-            }
+            display.run(new ShaderArguments().put("density",divergence));
 
-            ShaderArguments args=new ShaderArguments();
-            args.put("density",density[0]);
-            args.put("velocity",velocity);
-            display.run(args);
+
+            advect.run(new ShaderArguments().put("source",density).put("velocity",velocity),temp);
+            copy.run(new ShaderArguments().put("source",temp),density);
+
+            advect.run(new ShaderArguments().put("source",velocity).put("velocity",velocity),temp);
+            copy.run(new ShaderArguments().put("source",temp),velocity);
+
+            calcDivergence.run(new ShaderArguments().put("velocity",velocity),divergence);
+
 
 
             glfwSwapBuffers(window);
