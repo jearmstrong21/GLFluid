@@ -12,9 +12,12 @@ vec2 vel(int X,int Y){
     return texture(velocity,(uv+vec2(X,Y))/texSize).xy;
 }
 
-#define RHO 1.0
+//#define RHO 100.0
+uniform float RHO;
+uniform float EPSILON;
+uniform float DT;
 
 void main(){
     float d=vel(1,0).x-vel(-1,0).x+vel(0,1).y-vel(0,-1).y;
-    fc=vec4(-2.0/texSize.x*RHO*d);
+    fc=vec4(-2.0*EPSILON*RHO*d/DT);
 }

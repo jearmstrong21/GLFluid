@@ -60,17 +60,24 @@ public class Computation {
     }
 
     public void run(ShaderArguments args, GridData target){
-        glViewport(0,0,Main.SIMW,Main.SIMH);
         if(target!=null){
+            glViewport(0,0,Main.SIMW,Main.SIMH);
             glBindFramebuffer(GL_FRAMEBUFFER,target.id);
             for(String s:args.texs.keySet()){
                 if(args.texs.get(s).id == target.id){
                     throw new RuntimeException("Can't render with target == data[\""+s+"\"]");
                 }
             }
+        }else{
+            glViewport(0,0,Main.WINW,Main.WINH);
         }
         glUseProgram(id);
-        glUniform2f(glGetUniformLocation(id,"texSize"),Main.SIMW,Main.SIMH);
+//        glUniform2f(glGetUniformLocation(id,"texSize"),Main.SIMW,Main.SIMH);
+//        glUniform1f(glGetUniformLocation())
+        args.put("texSize",Main.SIMW,Main.SIMH);
+        args.put("EPSILON",Main.EPSILON);
+        args.put("DT",Main.DT);
+        args.put("RHO",Main.RHO);
         for(String s:args.ints.keySet()){
             glUniform1i(glGetUniformLocation(id,s),args.ints.get(s));
         }
