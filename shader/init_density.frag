@@ -43,6 +43,9 @@ void main(){
     float radius = length(toCenter)*2.0;
 
     color = hsb2rgb(vec3((angle/TWO_PI)+0.5, radius, 1.0));
+    color*=clamp(sin(st.x+st.y*10.0),0.,1.);
+    color.x*=5.0;
+    color.x=clamp(color.x,0.,1.);
 
     fc = vec4(color, 1.0);
 }
