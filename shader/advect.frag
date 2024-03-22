@@ -7,8 +7,10 @@ uniform sampler2D source, velocity;
 
 out vec4 fc;
 
-uniform float DT;
+uniform float dt;
 
 void main(){
-    fc=texture(source, uv/texSize-0.5*texture(velocity,uv/texSize).xy/texSize.x*DT  );
+    vec2 x = uv;
+    vec2 v = texture(velocity, x).xy;
+    fc=texture(source, x - v * dt);
 }

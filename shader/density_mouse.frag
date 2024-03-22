@@ -11,11 +11,11 @@ uniform vec2 mousePos;
 uniform float change;
 
 void main(){
-    vec4 f=texture(density,uv/texSize);
+    vec4 f=texture(density,uv);
 
     float df=0.0;
-    if(length(uv-mousePos)<30){
-        df+=change/(length(uv-mousePos)+0.1);
+    if(length(uv*texSize-mousePos)<30){
+        df+=change/(length(uv*texSize-mousePos)+0.1);
     }
     f+=df;
 

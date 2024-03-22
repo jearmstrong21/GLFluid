@@ -72,12 +72,6 @@ public class Computation {
             glViewport(0,0,Main.WINW,Main.WINH);
         }
         glUseProgram(id);
-//        glUniform2f(glGetUniformLocation(id,"texSize"),Main.SIMW,Main.SIMH);
-//        glUniform1f(glGetUniformLocation())
-        args.put("texSize",Main.SIMW,Main.SIMH);
-        args.put("EPSILON",Main.EPSILON);
-        args.put("DT",Main.DT);
-        args.put("RHO",Main.RHO);
         for(String s:args.ints.keySet()){
             glUniform1i(glGetUniformLocation(id,s),args.ints.get(s));
         }

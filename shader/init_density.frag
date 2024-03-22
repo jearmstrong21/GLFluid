@@ -33,19 +33,26 @@ vec3 hsb2rgb(in vec3 c){
 in vec2 uv;
 out vec4 fc;
 
+float checkerboard() {
+    float t=50.0;
+    return float((int(uv.x*texSize.x/t)+int(uv.y*texSize.y/t))%2)*0.6+0.4;
+}
+
 void main(){
-    vec2 st = uv/texSize;
+    vec2 st = uv;
     vec3 color = vec3(0.0);
 
     // Use polar coordinates instead of cartesian
     vec2 toCenter = vec2(0.5)-st;
-    float angle = atan(toCenter.y, toCenter.x);
+    float angle = atan(toCenter.y, toCenter.x) * 2.0;
     float radius = length(toCenter)*2.0;
 
     color = hsb2rgb(vec3((angle/TWO_PI)+0.5, radius, 1.0));
     color*=clamp(sin(st.x+st.y*10.0),0.,1.);
     color.x*=5.0;
     color.x=clamp(color.x,0.,1.);
+    color=color*0.8+0.2;
+    color*=checkerboard();
 
     fc = vec4(color, 1.0);
 }

@@ -6,5 +6,5 @@ uniform sampler2D source;
 uniform vec2 texSize;
 
 void main(){
-    fc=texture(source,uv/texSize);
+    fc=texture(source,uv);
 }

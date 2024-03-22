@@ -15,15 +15,8 @@ void main(){
     vec3 total=vec3(0);
     float sum=0.0;
 
-//    for(float x=-BLUR_DIST;x<=BLUR_DIST;x++){
-//        for(float y=-BLUR_DIST;y<=BLUR_DIST;y++){
-//            float weight=1.0;
-//            sum+=weight;
-//            total+=weight*texture(source,vec2(uv.x+x,uv.y+y)/texSize).xyz;
-//        }
-//    }
     for(float i=-BLUR_DIST;i<=BLUR_DIST;i++){
-        vec2 u=vec2(uv);
+        vec2 u=vec2(uv)*texSize;
         if(IS_HORIZONTAL>0.0){
             u.x+=i;
         }else{

@@ -8,15 +8,15 @@ uniform sampler2D velocity,pressure;
 out vec4 fc;
 
 uniform float RHO;
-uniform float DT;
+#define DT 0.1
 uniform float EPSILON;
 
 float p(int X,int Y){
-    return texture(pressure,vec2(uv.x+float(X),uv.y+float(Y))/texSize).x;
+    return texture(pressure,uv+vec2(X,Y)/texSize).x;
 }
 
 void main(){
-    vec2 vel=texture(velocity,uv/texSize).xy;
+    vec2 vel=texture(velocity,uv).xy;
     vel.x-=DT/(2.0*RHO*EPSILON)*(p(1,0)-p(-1,0));
     vel.y-=DT/(2.0*RHO*EPSILON)*(p(0,1)-p(0,-1));
     fc=vec4(vel,0,1);

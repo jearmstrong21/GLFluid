@@ -13,11 +13,18 @@ public class Main {
     public static Mesh quad;
     public static int SIMW = 1024/2;
     public static int SIMH = 1024/2;
-    public static int WINW = SIMW*4;
-    public static int WINH = SIMH*4;
+    public static int WINW = 1500;
+    public static int WINH = 1500;
+
+    public static float TIME_MULT = 0.001f;
     public static float RHO = 0.1F;
     public static float DT = 0.1F;
     public static float EPSILON = 1.0F / SIMW;
+    public static float dt = 0;
+
+    public static ShaderArguments args() {
+        return new ShaderArguments().put("texSize", SIMW, SIMH).put("dt", dt * TIME_MULT).put("RHO", RHO).put("EPSILON", EPSILON);
+    }
 
     public static void main(String[] __) {
         GLFWErrorCallback.createPrint(System.err).set();
@@ -53,9 +60,9 @@ public class Main {
         });
         quad.addBuffer2f(1, new float[]{
                 0, 0,
-                0, SIMH,
-                SIMW, 0,
-                SIMW, SIMH
+                0, 1,
+                1, 0,
+                1, 1
         });
         quad.setIndices(new int[]{
                 0, 1, 3,
@@ -66,6 +73,7 @@ public class Main {
         GridData velocity = new GridData();
 
         GridData temp = new GridData();
+        GridData temp2 = new GridData();
         GridData divergence = new GridData();
         GridData pressure = new GridData();
 
@@ -86,18 +94,26 @@ public class Main {
         Computation threshold=new Computation("postprocess/threshold");
         Computation recombine=new Computation("postprocess/recombine");
 
+        Computation drawVelocity=new Computation("draw_velocity");
+
         GridData finalDisplay=new GridData();
         GridData originalDisplay=new GridData();
 
         glClearColor(1, 1, 1, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        initDensity.run(new ShaderArguments(), density);
-        initVelocity.run(new ShaderArguments(), velocity);
+        initDensity.run(args(), density);
+        initVelocity.run(args(), velocity);
 
         float lmx=0,lmy=0;
 
+        long lastTime = System.currentTimeMillis();
+
         while (!glfwWindowShouldClose(window)) {
+            long newTime = System.currentTimeMillis();
+            dt = (newTime - lastTime) / 1000.0f;
+            lastTime = newTime;
+
             glClearColor(1, 1, 1, 1);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -108,75 +124,75 @@ public class Main {
                 mouseX = (float) mx[0];
                 mouseY = (float) my[0];
             }
+//            mouseY=WINH-mouseY;
             mouseX*=(float)SIMW/WINW;
             mouseY*=(float)SIMH/WINH;
             mouseX*=2;
             mouseY*=2;
             mouseY=SIMH-mouseY;
-//            System.out.println(mouseX+" "+mouseY);
+
+            clampAboveZero.run(args().put("source", density), temp);
+            copy.run(args().put("source", temp), density);
+
+
+
+            advect.run(args().put("source", density).put("velocity", velocity), temp);
+            copy.run(args().put("source", temp), density);
+
+            advect.run(args().put("source", velocity).put("velocity", velocity), temp);
+            copy.run(args().put("source", temp), velocity);
+
             if(glfwGetKey(window,GLFW_KEY_1)==GLFW_PRESS){
-                velocityMouse.run(new ShaderArguments().put("velocity", velocity).put("mousePos", mouseX, mouseY).put("mouseDir", mouseX-lmx,mouseY-lmy), temp);
-                copy.run(new ShaderArguments().put("source", temp), velocity);
+                velocityMouse.run(args().put("velocity", velocity).put("mousePos", mouseX, mouseY).put("mouseDir", mouseX-lmx,mouseY-lmy), temp);
+                copy.run(args().put("source", temp), velocity);
             }
             if(glfwGetKey(window,GLFW_KEY_2)==GLFW_PRESS){
-                densityMouse.run(new ShaderArguments().put("density",density).put("mousePos",mouseX,mouseY).put("change",
+                densityMouse.run(args().put("density",density).put("mousePos",mouseX,mouseY).put("change",
                         glfwGetKey(window,GLFW_KEY_3)==GLFW_PRESS?1.0F:-1.0F
-                        ),temp);
-                copy.run(new ShaderArguments().put("source",temp),density);
+                ),temp);
+                copy.run(args().put("source",temp),density);
             }
 
-            clampAboveZero.run(new ShaderArguments().put("source", density), temp);
-            copy.run(new ShaderArguments().put("source", temp), density);
+            clampAboveZero.run(args().put("source", density), temp);
+            copy.run(args().put("source", temp), density);
 
 
 
-            advect.run(new ShaderArguments().put("source", density).put("velocity", velocity), temp);
-            copy.run(new ShaderArguments().put("source", temp), density);
+            advect.run(args().put("source", density).put("velocity", velocity), temp);
+            copy.run(args().put("source", temp), density);
 
-            advect.run(new ShaderArguments().put("source", velocity).put("velocity", velocity), temp);
-            copy.run(new ShaderArguments().put("source", temp), velocity);
+            advect.run(args().put("source", velocity).put("velocity", velocity), temp);
+            copy.run(args().put("source", temp), velocity);
 
-            calcDivergence.run(new ShaderArguments().put("velocity", velocity), divergence);
+            calcDivergence.run(args().put("velocity", velocity), divergence);
 
             allZero.run(new ShaderArguments(), pressure);
             for (int i = 0; i < 50; i++) {
-                pressureIteration.run(new ShaderArguments().put("divergence", divergence).put("last_pressure", pressure), temp);
-                copy.run(new ShaderArguments().put("source", temp), pressure);
+                pressureIteration.run(args().put("divergence", divergence).put("last_pressure", pressure), temp);
+                copy.run(args().put("source", temp), pressure);
             }
 
-            fixPressure.run(new ShaderArguments().put("pressure", pressure).put("velocity", velocity), temp);
-            copy.run(new ShaderArguments().put("source", temp), velocity);
+            fixPressure.run(args().put("pressure", pressure).put("velocity", velocity), temp);
+            copy.run(args().put("source", temp), velocity);
 
 
             {
-                display.run(new ShaderArguments().put("density", density),originalDisplay);
-                copy.run(new ShaderArguments().put("source",originalDisplay),finalDisplay);
+//                copy.run(args().put("source", density));
+                display.run(args().put("density", density),originalDisplay);
+                copy.run(args().put("source",originalDisplay),finalDisplay);
                 final float OMEGA=10.0F;
-                final float BLUR_DIST=60.0F;
+                final float BLUR_DIST=80.0F;
 
-                final float THRESHOLD_LEN=0.8F;
+                final float THRESHOLD_LEN=0.9F;
 
+                threshold.run(args().put("source", finalDisplay).put("THRESHOLD_LEN", THRESHOLD_LEN), temp);
+                copy.run(args().put("source", temp));
+                blur.run(args().put("source",temp).put("BLUR_DIST",BLUR_DIST).put("OMEGA",OMEGA).put("IS_HORIZONTAL",1.0F),temp2);
+                blur.run(args().put("source",temp2).put("BLUR_DIST",BLUR_DIST).put("OMEGA",OMEGA).put("IS_HORIZONTAL",-1.0F),temp);
 
-
-                threshold.run(new ShaderArguments().put("source",finalDisplay).put("THRESHOLD_LEN",THRESHOLD_LEN),temp);
-                copy.run(new ShaderArguments().put("source",temp),finalDisplay);
-
-                blur.run(new ShaderArguments().put("source",finalDisplay).put("BLUR_DIST",BLUR_DIST).put("OMEGA",OMEGA).put("IS_HORIZONTAL",1.0F),temp);
-                copy.run(new ShaderArguments().put("source",temp),finalDisplay);
-
-                blur.run(new ShaderArguments().put("source",finalDisplay).put("BLUR_DIST",BLUR_DIST).put("OMEGA",OMEGA).put("IS_HORIZONTAL",-1.0F),temp);
-                copy.run(new ShaderArguments().put("source",temp),finalDisplay);
-
-                recombine.run(new ShaderArguments().put("original",originalDisplay).put("bloom",finalDisplay));
-
-//                copy.run(new ShaderArguments().put("source",finalDisplay));
-
-//                threshold.run(new ShaderArguments().put("source",finalDisplay).put("THRESHOLD_LEN",0.9F));
-//                blur.run(new ShaderArguments().put("source",finalDisplay).put("BLUR_DIST",10));
-//                copy.run(new ShaderArguments().put("source",temp),finalDisplay);
-
-//                copy.run(new ShaderArguments().put("source",finalDisplay));
-//                threshold.run(new ShaderArguments().put(""));
+                // temp = blur
+                copy.run(args().put("source", temp));
+                recombine.run(args().put("original", finalDisplay).put("bloom", temp));
             }
 
             glfwSwapBuffers(window);
