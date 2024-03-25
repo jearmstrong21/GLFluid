@@ -35,7 +35,7 @@ out vec4 fc;
 
 float checkerboard() {
     float t=50.0;
-    return float((int(uv.x*texSize.x/t)+int(uv.y*texSize.y/t))%2)*0.6+0.4;
+    return float((int(uv.x*texSize.x/t)+int(uv.y*texSize.y/t))%2)*0.8+0.1;
 }
 
 void main(){

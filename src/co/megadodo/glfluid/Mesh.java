@@ -21,6 +21,29 @@ import static org.lwjgl.opengl.GL30.*;
  */
 public class Mesh implements Serializable {
 
+    public static Mesh quad;
+
+
+    public static void makeMesh() {
+        quad = new Mesh();
+        quad.addBuffer2f(0, new float[]{
+                -1, -1,
+                -1, 1,
+                1, -1,
+                1, 1
+        });
+        quad.addBuffer2f(1, new float[]{
+                0, 0,
+                0, 1,
+                1, 0,
+                1, 1
+        });
+        quad.setIndices(new int[]{
+                0, 1, 3,
+                0, 2, 3
+        });
+    }
+
     public int id;
     public Map<Integer, Integer> buffers;
     public int ebo;

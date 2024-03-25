@@ -34,7 +34,7 @@ public class Computation {
         try {
             glShaderSource(frag, Files.readString(Paths.get("shader/" + name + ".frag")));
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         glCompileShader(frag);
         if (glGetShaderi(frag, GL_COMPILE_STATUS) == GL_FALSE) {
@@ -88,7 +88,7 @@ public class Computation {
             glBindTexture(GL_TEXTURE_2D,args.texs.get(s).color);
             i++;
         }
-        Main.quad.renderElements();
+        Mesh.quad.renderElements();
         if(target!=null){
             glBindFramebuffer(GL_FRAMEBUFFER,0);
         }
